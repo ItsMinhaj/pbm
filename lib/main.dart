@@ -1,18 +1,22 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pbm/model/transaction_model.dart';
 import 'package:pbm/utils/theme.dart';
 import 'package:pbm/views/auth/login_screen.dart';
-import 'package:pbm/views/auth/registration_screen.dart';
-import 'package:pbm/views/home/homepage.dart';
-import 'package:pbm/views/add_name/name_screen.dart';
 
 import 'firebase_options.dart';
 
+//late Box transactionBox;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await Hive.initFlutter();
+  await Hive.openBox("transactionBox");
+  Hive.registerAdapter(TransactionModelAdapter());
+
   runApp(const MyApp());
 }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbm/controller/db_helper.dart';
 import 'package:pbm/utils/static.dart';
+import 'package:pbm/widgets/error_dialog.dart';
 
 class AddTranscationScreen extends StatefulWidget {
   const AddTranscationScreen({super.key});
@@ -11,9 +13,11 @@ class AddTranscationScreen extends StatefulWidget {
 }
 
 class _AddTranscationScreenState extends State<AddTranscationScreen> {
+  late TextEditingController _amountController;
+  late TextEditingController _noteController;
   var selectedDate = DateTime.now();
-  int? amount;
-  String note = "Expense";
+  // int? amount;
+  // String note = "Expense";
   String type = "Income";
   List<String> months = [
     "Jan",
@@ -41,6 +45,20 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
         selectedDate = pickedDate;
       });
     }
+  }
+
+  @override
+  void initState() {
+    _amountController = TextEditingController();
+    _noteController = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
   }
 
   @override
@@ -76,6 +94,7 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
               const SizedBox(width: 12.0),
               Expanded(
                 child: TextFormField(
+                  controller: _amountController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -104,6 +123,7 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
               const SizedBox(width: 12.0),
               Expanded(
                 child: TextFormField(
+                  controller: _noteController,
                   keyboardType: TextInputType.text,
                   decoration: const InputDecoration(
                     border: InputBorder.none,
@@ -140,9 +160,6 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                   if (val) {
                     setState(() {
                       type = "Income";
-                      if (note.isEmpty || note != "Expense") {
-                        note = 'Income';
-                      }
                     });
                   }
                 },
@@ -162,10 +179,6 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                   if (val) {
                     setState(() {
                       type = "Expense";
-
-                      if (note.isEmpty || note == "Income") {
-                        note = 'Expense';
-                      }
                     });
                   }
                 },
@@ -224,7 +237,25 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
           const SizedBox(height: 30.0),
           InkWell(
             onTap: () {
-              Navigator.of(context).pop();
+              try {
+                if (_amountController.text.isNotEmpty &&
+                    _noteController.text.isNotEmpty) {
+                  DbHelper dbHelper = DbHelper();
+                  dbHelper.addData(int.tryParse(_amountController.text)!,
+                      selectedDate, type, _noteController.text);
+
+                  print(_amountController.text);
+                  print(selectedDate);
+                  print(_noteController.text);
+                  print(type);
+
+                  Navigator.of(context).pop();
+                } else {
+                  showErrorDialog(context, "Alert", "Fields can't be empty");
+                }
+              } catch (e) {
+                showErrorDialog(context, "Alert", e.toString());
+              }
             },
             child: Ink(
               height: 48.0,

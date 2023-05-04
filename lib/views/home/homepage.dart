@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:pbm/model/transaction_model.dart';
 import 'package:pbm/utils/static.dart';
 import 'package:pbm/views/add_transaction/add_transaction_screen.dart';
 
@@ -11,7 +13,36 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  late Box transcationBox;
   int items = 10;
+
+  @override
+  void initState() {
+    transcationBox = Hive.box("transactionBox");
+    super.initState();
+  }
+
+  Future<List<TransactionModel>> fetch() async {
+    if (transcationBox.values.isEmpty) {
+      return Future.value([]);
+    } else {
+      List<TransactionModel> items = [];
+      transcationBox.toMap().values.forEach(
+        (element) {
+          items.add(
+            TransactionModel(
+              element['amount'],
+              element['note'],
+              element['date'],
+              element['type'],
+            ),
+          );
+        },
+      );
+      return items;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,58 +209,77 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 10),
             Expanded(
-              child: ListView.builder(
-                itemCount: items,
-                itemBuilder: (context, index) {
-                  return items % 2 == 0
-                      ? ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(
-                              Icons.arrow_upward,
-                              color: Colors.white,
-                              size: 20,
-                            ),
-                          ),
-                          title: const Text("Income"),
-                          trailing: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Column(
-                              children: [
-                                const Text("+ 15000 Tk"),
-                                Text(
-                                  "Salary",
-                                  style: GoogleFonts.dmSans(
-                                      fontSize: 12, color: Colors.black54),
+              child: FutureBuilder(
+                future: fetch(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(
+                      child: Text("Error!"),
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    if (snapshot.data!.isEmpty) {
+                      return const Center(
+                        child: Text("Please add your transaction"),
+                      );
+                    }
+                  }
+
+                  return ListView.builder(
+                    itemCount: snapshot.data!.length,
+                    itemBuilder: (context, index) {
+                      var data = snapshot.data![index];
+                      return data.type == "Income"
+                          ? ListTile(
+                              leading: const CircleAvatar(
+                                child: Icon(
+                                  Icons.arrow_upward,
+                                  color: Colors.white,
+                                  size: 20,
                                 ),
-                              ],
-                            ),
-                          ),
-                          subtitle: const Text("02 May 2023"),
-                        )
-                      : ListTile(
-                          leading: const CircleAvatar(
-                            child: Icon(
-                              Icons.arrow_downward,
-                              color: Colors.red,
-                              size: 18,
-                            ),
-                          ),
-                          title: const Text("Expense"),
-                          trailing: Padding(
-                            padding: const EdgeInsets.only(top: 10.0),
-                            child: Column(
-                              children: [
-                                const Text("- 5000 Tk"),
-                                Text(
-                                  "Home rent",
-                                  style: GoogleFonts.dmSans(
-                                      fontSize: 12, color: Colors.black54),
+                              ),
+                              title: Text(data.type),
+                              trailing: Padding(
+                                padding: const EdgeInsets.only(top: 10.0),
+                                child: Column(
+                                  children: [
+                                    Text("+ ${data.amount} Tk"),
+                                    Text(
+                                      data.note,
+                                      style: GoogleFonts.dmSans(
+                                          fontSize: 12, color: Colors.black54),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                          subtitle: const Text("02 May 2023"),
-                        );
+                              ),
+                              subtitle: Text(data.date.toIso8601String()),
+                            )
+                          : ListTile(
+                              leading: const CircleAvatar(
+                                child: Icon(
+                                  Icons.arrow_downward,
+                                  color: Colors.red,
+                                  size: 18,
+                                ),
+                              ),
+                              title: const Text("Expense"),
+                              trailing: Padding(
+                                padding: const EdgeInsets.only(top: 10.0),
+                                child: Column(
+                                  children: [
+                                    const Text("- 5000 Tk"),
+                                    Text(
+                                      "Home rent",
+                                      style: GoogleFonts.dmSans(
+                                          fontSize: 12, color: Colors.black54),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              subtitle: const Text("02 May 2023"),
+                            );
+                    },
+                  );
                 },
               ),
             )

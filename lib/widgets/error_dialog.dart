@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pbm/utils/static.dart';
 
-showConfirmDialog(BuildContext context, String title, String content) async {
+showErrorDialog(BuildContext context, String title, String content) async {
   return await showDialog(
     context: context,
     builder: (context) => AlertDialog(
@@ -13,19 +14,11 @@ showConfirmDialog(BuildContext context, String title, String content) async {
           },
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(
-              Colors.red,
+              primaryColor,
             ),
           ),
           child: const Text(
-            "YES",
-          ),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop(false);
-          },
-          child: const Text(
-            "No",
+            "Ok",
           ),
         ),
       ],
