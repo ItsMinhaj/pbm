@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:pbm/main.dart';
 import 'package:pbm/utils/static.dart';
+import 'package:pbm/views/auth/registration_screen.dart';
 import 'package:pbm/views/home/homepage.dart';
 
 class AddName extends StatelessWidget {
@@ -11,8 +13,8 @@ class AddName extends StatelessWidget {
   //
   @override
   Widget build(BuildContext context) {
-    String name = "";
 
+String name = '';
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0.0,
@@ -95,8 +97,9 @@ class AddName extends StatelessWidget {
                   fontSize: 20.0,
                 ),
                 maxLength: 16,
-                onChanged: (val) {
-                  name = val;
+                onChanged: (val) async{
+               name =  val;
+               await nameBox.put("name", name);
                 },
               ),
             ),
@@ -137,7 +140,7 @@ class AddName extends StatelessWidget {
                     //   ),
                     // );
                     Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const HomeScreen()));
+                        MaterialPageRoute(builder: (_) => const RegistrationScreen()));
                   }
                 },
                 style: ButtonStyle(

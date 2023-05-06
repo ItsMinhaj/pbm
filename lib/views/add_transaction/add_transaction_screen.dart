@@ -1,18 +1,22 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pbm/controller/db_helper.dart';
+import 'package:pbm/services/database_helper.dart';
+import 'package:pbm/model/trans_model.dart';
 import 'package:pbm/utils/static.dart';
 import 'package:pbm/widgets/error_dialog.dart';
 
 class AddTranscationScreen extends StatefulWidget {
-  const AddTranscationScreen({super.key});
-
+  const AddTranscationScreen({super.key, required this.totalBalance});
+final int totalBalance;
   @override
   State<AddTranscationScreen> createState() => _AddTranscationScreenState();
 }
 
 class _AddTranscationScreenState extends State<AddTranscationScreen> {
+  DatabaseHelper databaseHelper = DatabaseHelper();
   late TextEditingController _amountController;
   late TextEditingController _noteController;
   var selectedDate = DateTime.now();
@@ -103,7 +107,7 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                     border: InputBorder.none,
                     hintText: "0000",
                   ),
-                  style: const TextStyle(fontSize: 24.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
               )
             ],
@@ -129,7 +133,7 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                     border: InputBorder.none,
                     hintText: "Note of Transaction",
                   ),
-                  style: const TextStyle(fontSize: 24.0),
+                  style: const TextStyle(fontSize: 16.0),
                 ),
               ),
             ],
@@ -236,25 +240,42 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
           ),
           const SizedBox(height: 30.0),
           InkWell(
-            onTap: () {
+            onTap: () async{
+             String userEmail = FirebaseAuth.instance.currentUser!.email!;
+
               try {
                 if (_amountController.text.isNotEmpty &&
                     _noteController.text.isNotEmpty) {
-                  DbHelper dbHelper = DbHelper();
-                  dbHelper.addData(int.tryParse(_amountController.text)!,
-                      selectedDate, type, _noteController.text);
 
-                  print(_amountController.text);
-                  print(selectedDate);
-                  print(_noteController.text);
-                  print(type);
+                  if(type == "Expense" && (int.tryParse(_amountController.text)! > widget.totalBalance)  )
+                    {
+                      Get.snackbar(
+                        "",
+                        "",
+                        titleText: const Text("Alert", style: TextStyle(color: Colors.black87, fontSize: 20),),
+                        messageText: const Text("Insufficient Balance. First Add more balance to make expense transaction", style: TextStyle(color: Colors.white),),
+                        icon: const Icon(Icons.dangerous_outlined, color: Colors.black87),
+                        snackPosition: SnackPosition.TOP,
+                        backgroundColor: Colors.green,
+                      );
+                    }else{
+                    await  databaseHelper.insertTransaction(
+                      TransModel(
+                        id: userEmail,
+                        amount: int.parse(_amountController.text),
+                        source: _noteController.text,
+                        type: type,
+                        date: selectedDate.toString(),
+                      ),);
+                    Navigator.of(context).pop();
+                  }
 
-                  Navigator.of(context).pop();
+
                 } else {
-                  showErrorDialog(context, "Alert", "Fields can't be empty");
+                  errorShowDialog("Fields can't be empty");
                 }
               } catch (e) {
-                showErrorDialog(context, "Alert", e.toString());
+                errorShowDialog(e.toString());
               }
             },
             child: Ink(

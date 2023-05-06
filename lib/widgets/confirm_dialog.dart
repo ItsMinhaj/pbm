@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
-showConfirmDialog(BuildContext context, String title, String content) async {
+showConfirmDialog({required BuildContext context, String? title, String? content,void Function()? onPressed}) async {
   return await showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(title),
-      content: Text(content),
+      title: Text(title!),
+      content: Text(content!),
       actions: [
         ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop(true);
-          },
+          onPressed: onPressed,
           style: ButtonStyle(
             backgroundColor: MaterialStateProperty.all(
               Colors.red,

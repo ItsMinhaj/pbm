@@ -1,9 +1,18 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:pbm/main.dart';
+import 'package:pbm/services/database_helper.dart';
+import 'package:pbm/model/trans_model.dart';
 import 'package:pbm/model/transaction_model.dart';
 import 'package:pbm/utils/static.dart';
 import 'package:pbm/views/add_transaction/add_transaction_screen.dart';
+import 'package:pbm/widgets/confirm_dialog.dart';
+
+import '../../controller/profile_pic_controller.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,11 +22,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  late Box transcationBox;
+ // late Box transcationBox;
   int items = 10;
   int totalBalance = 0;
   int totalIncome = 0;
   int totalExpense = 0;
+
+  bool isShowLogout = false;
+
+  String dropdownValue = "";
 
   DateTime today = DateTime.now();
   DateTime now = DateTime.now();
@@ -37,54 +50,31 @@ class _HomeScreenState extends State<HomeScreen> {
     "Dec"
   ];
 
-  @override
-  void initState() {
-    transcationBox = Hive.box("transactionBox");
-    super.initState();
-  }
+  DatabaseHelper databaseHelper =  DatabaseHelper();
 
-  Future<List<TransactionModel>> fetch() async {
-    if (transcationBox.values.isEmpty) {
-      return Future.value([]);
-    } else {
-      List<TransactionModel> items = [];
-      transcationBox.toMap().values.forEach(
-        (element) {
-          items.add(
-            TransactionModel(
-              element['amount'],
-              element['note'],
-              element['date'],
-              element['type'],
-            ),
-          );
-        },
-      );
-      return items;
-    }
-  }
 
   // Get total Balance
-  getTotalBalance(List<TransactionModel> entiredata) {
+  getTotalBalance(List<TransModel> entireData) {
     totalExpense = 0;
     totalIncome = 0;
     totalBalance = 0;
 
-    for (TransactionModel data in entiredata) {
-      if (data.date.month == today.month) {
+    for (TransModel data in entireData) {
+
         if (data.type == "Income") {
-          totalBalance += data.amount;
-          totalIncome += data.amount;
+          totalBalance += data.amount!;
+          totalIncome += data.amount!;
         } else {
-          totalBalance -= data.amount;
-          totalExpense += data.amount;
+          totalBalance -= data.amount!;
+          totalExpense += data.amount!;
         }
-      }
+
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final profileController = Get.put(ProfilePicController());
     return Scaffold(
       appBar: AppBar(
         toolbarHeight: 0.0,
@@ -102,11 +92,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         )
       ],
-      body: FutureBuilder<List<TransactionModel>>(
-        future: fetch(),
+      body: FutureBuilder<List<TransModel>>(
+        future:  databaseHelper.getAllTransactions(),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text("Error"));
+          if (!snapshot.hasData) {
+            return const Center(child: Text("No data"));
           }
           if (snapshot.hasData) {
             if (snapshot.data!.isEmpty) {
@@ -123,22 +113,61 @@ class _HomeScreenState extends State<HomeScreen> {
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10.0),
                   child: ListTile(
-                    leading: const CircleAvatar(
+                    leading:  CircleAvatar(
                       radius: 24,
-                      child: Icon(Icons.person),
+                      child: Obx(()=> ClipRRect(
+                          borderRadius: BorderRadius.circular(50),
+                          child: Image.network(profileController.imgUrl.value == "" ? "Loading.." :profileController.imgUrl.value, height: 100,width: 100, fit: BoxFit.fill,),),)
                     ),
                     title: Text(
-                      "Welcome, Minhajul",
+                      "Welcome, ${nameBox.get("name")}",
                       style: GoogleFonts.dmSans(
-                          color: primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18),
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
                     ),
-                    trailing: const Icon(
-                      Icons.settings,
-                      color: Colors.black54,
+                    trailing: IconButton(
+                      icon:const Icon(Icons.logout),
+                      onPressed: (){
+                        showConfirmDialog(
+                          context: context,
+                          title: "Logout",
+                          content: "Do you want to logout?",
+                          onPressed: () async {
+                            await FirebaseAuth.instance.signOut();
+                          },
+                        );
+                      },
                     ),
+                    // PopupMenuButton<int>(
+                    //   onSelected: (value) {
+                    //     if (value == 1) {
+                    //       // Perform logout action
+                    //       showConfirmDialog(
+                    //         context: context,
+                    //         title: "",
+                    //         content: "Are you sure?",
+                    //         onPressed: () async {
+                    //           await FirebaseAuth.instance.signOut();
+                    //         },
+                    //       );
+                    //     }
+                    //   },
+                    //   itemBuilder: (context) =>[
+                    //     const PopupMenuItem(
+                    //       value: 1,
+                    //       child: Text('Logout'),
+                    //     ),
+                    //   ],
+                    //   child: IconButton(
+                    //     icon: const Icon(Icons.menu),
+                    //     onPressed: () {},
+                    //   ),
+                    // ),
                   ),
+
+
                 ),
                 Container(
                   margin: const EdgeInsets.symmetric(vertical: 10.0),
@@ -255,6 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 10.0),
                 // Recent Transactions
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Recent Transactions",
@@ -263,6 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           fontWeight: FontWeight.bold,
                           color: Colors.black87),
                     ),
+
                   ],
                 ),
                 const SizedBox(height: 10),
@@ -280,21 +311,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   size: 20,
                                 ),
                               ),
-                              title: Text(data.type),
+                              title: Text(data.type!),
                               trailing: Padding(
                                 padding: const EdgeInsets.only(top: 10.0),
                                 child: Column(
                                   children: [
                                     Text("+ ${data.amount} Tk"),
                                     Text(
-                                      data.note,
+                                      data.source!,
                                       style: GoogleFonts.dmSans(
                                           fontSize: 12, color: Colors.black54),
                                     ),
                                   ],
                                 ),
                               ),
-                              subtitle: Text(data.date.toIso8601String()),
+                              subtitle: Text( DateFormat.yMMMEd().format(DateTime.parse(data.date.toString()
+                              ),),),
                             )
                           : ListTile(
                               leading: const CircleAvatar(
@@ -309,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: const EdgeInsets.only(top: 10.0),
                                 child: Column(
                                   children: [
-                                    const Text("- 5000 Tk"),
+                                     Text("- ${data.amount.toString()} Tk"),
                                     Text(
                                       "Home rent",
                                       style: GoogleFonts.dmSans(
@@ -318,8 +350,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                               ),
-                              subtitle: const Text("02 May 2023"),
-                            );
+                              subtitle:  Text( DateFormat.yMMMEd().format(DateTime.parse(data.date.toString()),),),
+                       );
+
                     },
                   ),
                 ),
@@ -336,7 +369,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Navigator.of(context)
               .push(
             MaterialPageRoute(
-              builder: (context) => const AddTranscationScreen(),
+              builder: (context) =>  AddTranscationScreen(totalBalance: totalBalance),
             ),
           )
               .whenComplete(() {
