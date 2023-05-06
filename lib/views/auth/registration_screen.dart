@@ -1,14 +1,42 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:pbm/controller/registration_controller.dart';
 import 'package:pbm/utils/static.dart';
 import 'package:pbm/views/auth/login_screen.dart';
 import 'package:pbm/views/add_name/name_screen.dart';
 
 import '../../widgets/text_input_field.dart';
 
-class RegistrationScreen extends StatelessWidget {
+class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
+
+  @override
+  State<RegistrationScreen> createState() => _RegistrationScreenState();
+}
+
+class _RegistrationScreenState extends State<RegistrationScreen> {
+  late TextEditingController _emailTextController;
+  late TextEditingController _passwordTextController;
+  final regController = Get.put(RegistrationController());
+
+  @override
+  void initState() {
+    _emailTextController = TextEditingController();
+    _passwordTextController = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _emailTextController.dispose();
+    _passwordTextController.dispose();
+    regController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,21 +49,50 @@ class RegistrationScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const SizedBox(height: 30),
-              Container(
-                height: 70,
-                width: 70,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: primaryColor,
-                ),
-                child: const ClipRRect(
-                  child: Icon(Icons.person, size: 32),
-                ),
+              Stack(
+                children: [
+                  GestureDetector(
+                    onTap: () async {
+                      await regController.pickImageFromGallery();
+                    },
+                    child: Obx(() {
+                      return Ink(
+                        height: 70,
+                        width: 70,
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: primaryColor,
+                            border:
+                                Border.all(color: Colors.deepPurple, width: 2)),
+                        child: ClipRRect(
+                          child: regController.imagePath.isNotEmpty
+                              ? Image.file(
+                                  File(regController.imagePath.toString()),
+                                  fit: BoxFit.fill,
+                                )
+                              : const Icon(Icons.person,
+                                  size: 42, color: Colors.white),
+                        ),
+                      );
+                    }),
+                  ),
+                  const Positioned(
+                      bottom: -5,
+                      right: 0,
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 24,
+                        color: Colors.deepPurple,
+                      ))
+                ],
               ),
               const SizedBox(height: 30),
-              const TextInputField(label: "Email"),
+              TextInputField(controller: _emailTextController, label: "Email"),
               const SizedBox(height: 10),
-              const TextInputField(label: "Password", obscure: true),
+              TextInputField(
+                  controller: _passwordTextController,
+                  label: "Password",
+                  obscure: true),
               const SizedBox(height: 30),
               InkWell(
                 onTap: () {

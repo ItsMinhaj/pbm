@@ -243,18 +243,12 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                   DbHelper dbHelper = DbHelper();
                   dbHelper.addData(int.tryParse(_amountController.text)!,
                       selectedDate, type, _noteController.text);
-
-                  print(_amountController.text);
-                  print(selectedDate);
-                  print(_noteController.text);
-                  print(type);
-
                   Navigator.of(context).pop();
                 } else {
-                  showErrorDialog(context, "Alert", "Fields can't be empty");
+                  errorShowDialog("Fields can't be empty");
                 }
               } catch (e) {
-                showErrorDialog(context, "Alert", e.toString());
+                errorShowDialog(e.toString());
               }
             },
             child: Ink(
