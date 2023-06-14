@@ -32,7 +32,11 @@ import 'package:get/get.dart';
 Future<void> errorShowDialog(String text) async {
   return Get.defaultDialog(
     title: "Error message",
+<<<<<<< HEAD
     content: Text(text,style: const TextStyle(color: Colors.black87),),
+=======
+    content: Text(text),
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
     textConfirm: "Ok",
     onConfirm: () => Get.back(),
   );

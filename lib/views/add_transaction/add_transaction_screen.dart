@@ -246,6 +246,7 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
               try {
                 if (_amountController.text.isNotEmpty &&
                     _noteController.text.isNotEmpty) {
+<<<<<<< HEAD
 
                   if(type == "Expense" && (int.tryParse(_amountController.text)! > widget.totalBalance)  )
                     {
@@ -271,6 +272,12 @@ class _AddTranscationScreenState extends State<AddTranscationScreen> {
                   }
 
 
+=======
+                  DbHelper dbHelper = DbHelper();
+                  dbHelper.addData(int.tryParse(_amountController.text)!,
+                      selectedDate, type, _noteController.text);
+                  Navigator.of(context).pop();
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
                 } else {
                   errorShowDialog("Fields can't be empty");
                 }

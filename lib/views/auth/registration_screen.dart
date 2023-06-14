@@ -23,8 +23,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   late TextEditingController _passwordTextController;
   final regController = Get.put(RegistrationController());
 
+<<<<<<< HEAD
   final _formkey = GlobalKey<FormState>();
 
+=======
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
   @override
   void initState() {
     _emailTextController = TextEditingController();
@@ -36,7 +39,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   void dispose() {
     _emailTextController.dispose();
     _passwordTextController.dispose();
+<<<<<<< HEAD
 
+=======
+    regController.dispose();
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
     super.dispose();
   }
 
@@ -67,17 +74,66 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             border:
                                 Border.all(color: Colors.deepPurple, width: 2)),
                         child: ClipRRect(
+<<<<<<< HEAD
                           borderRadius: BorderRadius.circular(50),
                           child: regController.imagePath.isNotEmpty
                               ? Image.file(
                                   File(regController.imagePath.toString()),
                                   fit: BoxFit.cover,
+=======
+                          child: regController.imagePath.isNotEmpty
+                              ? Image.file(
+                                  File(regController.imagePath.toString()),
+                                  fit: BoxFit.fill,
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
                                 )
                               : const Icon(Icons.person,
                                   size: 42, color: Colors.white),
                         ),
                       );
                     }),
+<<<<<<< HEAD
+=======
+                  ),
+                  const Positioned(
+                      bottom: -5,
+                      right: 0,
+                      child: Icon(
+                        Icons.camera_alt,
+                        size: 24,
+                        color: Colors.deepPurple,
+                      ))
+                ],
+              ),
+              const SizedBox(height: 30),
+              TextInputField(controller: _emailTextController, label: "Email"),
+              const SizedBox(height: 10),
+              TextInputField(
+                  controller: _passwordTextController,
+                  label: "Password",
+                  obscure: true),
+              const SizedBox(height: 30),
+              InkWell(
+                onTap: () {
+                  Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => const AddName()));
+                },
+                borderRadius: BorderRadius.circular(15.0),
+                child: Ink(
+                  width: 200,
+                  height: 48,
+                  decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(15.0)),
+                  child: Center(
+                    child: Text(
+                      "Registration",
+                      style: GoogleFonts.dmSans(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600),
+                    ),
+>>>>>>> 5f50e2439b2bb2dee19fa4bf5b2cc3a10248be31
                   ),
                   const Positioned(
                       bottom: -5,
